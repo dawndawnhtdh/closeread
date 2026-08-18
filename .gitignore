@@ -1,5 +1,7 @@
 node_modules/
 dist/
+release/
+.icon-build/
 .DS_Store
 *.log
 .env

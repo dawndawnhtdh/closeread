@@ -30,6 +30,16 @@ npm --version
 
 ## 3. 启动 CloseRead
 
+### 3.1 使用 macOS 桌面版
+
+如果已经安装了 CloseRead 桌面应用，可以打开“启动台”，搜索 `CloseRead`，然后点击绿色书本图标启动。也可以在 Finder 的“应用程序”文件夹中双击 `CloseRead.app`。
+
+桌面版不需要保持终端或 Vite 服务运行。首次打开时仍需在右上角设置中填写 DeepSeek API Key。
+
+如果系统提示应用来自未识别开发者，可以在 Finder 中按住 `Control` 点击 CloseRead，选择“打开”，再在确认窗口中点击“打开”。个人本地构建使用临时签名；正式对外分发需要 Apple Developer ID 签名和公证。
+
+### 3.2 使用源码运行
+
 首次运行：
 
 ```bash

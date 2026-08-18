@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "desktop/main.js",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "package:mac": "bash scripts/package-mac.sh"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

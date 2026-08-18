@@ -39,6 +39,18 @@ npm run dev
 
 完整说明见 [中文操作手册](docs/USER_GUIDE_ZH.md)。
 
+## macOS 桌面版
+
+在 Apple Silicon Mac 上可以生成独立的 `CloseRead.app`：
+
+```bash
+npm run package:mac
+```
+
+生成文件位于 `release/CloseRead.app`。将它拖入“应用程序”文件夹后，CloseRead 会出现在启动台中，后续可以直接点击图标启动，不需要运行 Vite 或打开终端。
+
+当前打包脚本会复用本机已有的 Electron.app，并进行本地临时签名，适合个人使用。面向其他用户分发时，还需要 Apple Developer ID 签名和公证。
+
 ## 数据与隐私
 
 - API Key 只保存在当前页面内存中，刷新后会清除。
