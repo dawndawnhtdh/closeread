@@ -41,6 +41,8 @@ npm run dev
 
 ## macOS 桌面版
 
+推荐普通用户直接从 GitHub Releases 下载 `CloseRead-1.0.1-arm64.zip`。解压后将 `CloseRead.app` 拖入“应用程序”，即可从启动台打开。
+
 在 Apple Silicon Mac 上可以生成独立的 `CloseRead.app`：
 
 ```bash
