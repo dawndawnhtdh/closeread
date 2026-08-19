@@ -41,12 +41,12 @@ mkdir -p "$APP_PATH/Contents/Resources/app/desktop"
 
 cp -R "$PROJECT_DIR/dist" "$APP_PATH/Contents/Resources/app/dist"
 cp "$PROJECT_DIR/desktop/main.js" "$APP_PATH/Contents/Resources/app/desktop/main.js"
-cp "$PROJECT_DIR/desktop/preload.js" "$APP_PATH/Contents/Resources/app/desktop/preload.js"
+cp "$PROJECT_DIR/desktop/preload.cjs" "$APP_PATH/Contents/Resources/app/desktop/preload.cjs"
 
 cat > "$APP_PATH/Contents/Resources/app/package.json" <<'JSON'
 {
   "name": "closeread-english",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "desktop/main.js"
 }
@@ -57,8 +57,8 @@ JSON
 /usr/libexec/PlistBuddy -c "Set :CFBundleName CloseRead" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName CloseRead" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile CloseRead.icns" "$PLIST"
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.0" "$PLIST"
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion 1" "$PLIST"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.1" "$PLIST"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion 2" "$PLIST"
 
 codesign --force --deep --sign - "$APP_PATH" >/dev/null
 rm -rf "$ICON_TMP"

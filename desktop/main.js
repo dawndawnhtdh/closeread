@@ -28,7 +28,7 @@ const createWindow = () => {
     title: "CloseRead",
     backgroundColor: "#f4f3ef",
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
     },
