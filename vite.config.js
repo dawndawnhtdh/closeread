@@ -7,8 +7,8 @@ const CLOSE_READ_SCHEMA = {
       type: "object", additionalProperties: false, required: ["id", "original", "translation", "structure", "grammarPoints", "words"], properties: {
         id: { type: "string" }, original: { type: "string" }, translation: { type: "string" }, structure: { type: "string" },
         grammarPoints: { type: "array", items: { type: "object", additionalProperties: false, required: ["label", "explanation"], properties: { label: { type: "string" }, explanation: { type: "string" } } } },
-        words: { type: "array", items: { type: "object", additionalProperties: false, required: ["word", "lemma", "pronunciation", "partOfSpeech", "meaning", "note", "isKey"], properties: {
-          word: { type: "string" }, lemma: { type: "string" }, pronunciation: { type: "string" }, partOfSpeech: { type: "string" }, meaning: { type: "string" }, note: { type: "string" }, isKey: { type: "boolean" },
+        words: { type: "array", items: { type: "object", additionalProperties: false, required: ["word", "lemma", "familyLemma", "pronunciation", "partOfSpeech", "meaning", "note", "isKey"], properties: {
+          word: { type: "string" }, lemma: { type: "string" }, familyLemma: { type: "string" }, pronunciation: { type: "string" }, partOfSpeech: { type: "string" }, meaning: { type: "string" }, note: { type: "string" }, isKey: { type: "boolean" },
         } } },
       },
     } },
@@ -27,7 +27,7 @@ const readBody = (request) => new Promise((resolve, reject) => {
 const parseModelJson = (content) => JSON.parse(String(content || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""));
 const buildInstructions = (level) => {
   const detail = { brief: "每句最多给出 2 个最重要的语法点。", detailed: "完整解释句子主干、从句、修饰关系和重要固定搭配。", technical: "特别解释软件、AI 和技术文档中的术语及常见表达。" }[level] || "完整解释句子结构。";
-  return `你是一名面向中文母语学习者的英语精读老师。把用户文本按英文句子拆分，只输出一个 JSON 对象，不要输出 Markdown。要求：translation 是自然准确的中文整句翻译；structure 先给主干再连接从句、非谓语和介词短语；grammarPoints 用中文解释为什么这样理解；words 必须包含原句中每一个英文单词且保持原顺序，不含标点；lemma 用小写原形；pronunciation 使用 IPA；partOfSpeech、meaning、note 必须结合当前句子；isKey 只标记值得记忆的词。title 和 summary 用中文。${detail}\nJSON 字段结构必须为：{"title":"中文标题","summary":"中文阅读重点","sentences":[{"id":"sentence-1","original":"英文原句","translation":"中文翻译","structure":"句式骨架","grammarPoints":[{"label":"语法名称","explanation":"中文解释"}],"words":[{"word":"原词","lemma":"原形","pronunciation":"IPA","partOfSpeech":"词性","meaning":"当前语境释义","note":"搭配或句中作用","isKey":true}]}]}`;
+  return `你是一名面向中文母语学习者的英语精读老师。把用户文本按英文句子拆分，只输出一个 JSON 对象，不要输出 Markdown。要求：translation 是自然准确的中文整句翻译；structure 先给主干再连接从句、非谓语和介词短语；grammarPoints 用中文解释为什么这样理解；words 必须包含原句中每一个英文单词且保持原顺序，不含标点；lemma 用小写原形；familyLemma 用小写的词族核心词，例如 decide、decision、decisive、decisively 都写 decide；仅当词义确实同源且相关时才共用 familyLemma，否则填自身 lemma；pronunciation 使用 IPA；partOfSpeech、meaning、note 必须结合当前句子；isKey 只标记值得记忆的词。title 和 summary 用中文。${detail}\nJSON 字段结构必须为：{"title":"中文标题","summary":"中文阅读重点","sentences":[{"id":"sentence-1","original":"英文原句","translation":"中文翻译","structure":"句式骨架","grammarPoints":[{"label":"语法名称","explanation":"中文解释"}],"words":[{"word":"原词","lemma":"原形","familyLemma":"词族核心词","pronunciation":"IPA","partOfSpeech":"词性","meaning":"当前语境释义","note":"搭配或句中作用","isKey":true}]}]}`;
 };
 
 const closeReadProxy = () => ({

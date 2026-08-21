@@ -17,6 +17,12 @@ import {
   Volume2,
   X,
 } from "lucide-react";
+import {
+  addToVocabulary,
+  hasVocabularyContext,
+  normalizeVocabulary,
+  vocabularySearchText,
+} from "./vocabulary.js";
 
 const SAMPLE_TEXT = `Agents are systems that independently accomplish tasks on your behalf. A workflow is a system where LLMs and tools are orchestrated through predefined code paths. The distinction is useful because agents trade predictability for flexibility.`;
 
@@ -110,7 +116,7 @@ function localAnalyze(text) {
 
 const loadVocabulary = () => {
   try {
-    return JSON.parse(localStorage.getItem("close-read-vocabulary") || "[]");
+    return normalizeVocabulary(JSON.parse(localStorage.getItem("close-read-vocabulary") || "[]"));
   } catch {
     return [];
   }
@@ -133,6 +139,7 @@ export default function App() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [config, setConfig] = useState({ apiKey: "", model: "deepseek-chat" });
   const [search, setSearch] = useState("");
+  const [vocabularyFilter, setVocabularyFilter] = useState("all");
   const [level, setLevel] = useState("detailed");
 
   useEffect(() => {
@@ -142,8 +149,17 @@ export default function App() {
   const sentence = analysis?.sentences?.[activeSentence];
   const filteredVocabulary = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return vocabulary.filter((item) => !query || `${item.word} ${item.meaning} ${item.sentence}`.toLowerCase().includes(query));
-  }, [search, vocabulary]);
+    return vocabulary.filter((item) => {
+      const matchesStatus = vocabularyFilter === "all" || (vocabularyFilter === "mastered" ? item.mastered : !item.mastered);
+      return matchesStatus && (!query || vocabularySearchText(item).includes(query));
+    });
+  }, [search, vocabulary, vocabularyFilter]);
+
+  const vocabularyCounts = useMemo(() => ({
+    all: vocabulary.length,
+    learning: vocabulary.filter((item) => !item.mastered).length,
+    mastered: vocabulary.filter((item) => item.mastered).length,
+  }), [vocabulary]);
 
   const handleAnalyze = async () => {
     if (!source.trim()) {
@@ -179,7 +195,8 @@ export default function App() {
 
   const currentEntry = selectedWord && sentence ? {
     word: selectedWord.word,
-    lemma: selectedWord.lemma,
+    lemma: selectedWord.lemma || cleanWord(selectedWord.word),
+    familyLemma: selectedWord.familyLemma || selectedWord.lemma || cleanWord(selectedWord.word),
     pronunciation: selectedWord.pronunciation,
     partOfSpeech: selectedWord.partOfSpeech,
     meaning: selectedWord.meaning,
@@ -188,12 +205,12 @@ export default function App() {
     sentenceTranslation: sentence.translation,
   } : null;
 
-  const isSaved = currentEntry && vocabulary.some((item) => item.lemma === currentEntry.lemma && item.sentence === currentEntry.sentence);
+  const isSaved = currentEntry && hasVocabularyContext(vocabulary, currentEntry);
+  const savedEntry = currentEntry && vocabulary.find((item) => item.lemma === currentEntry.lemma);
 
   const addVocabulary = () => {
     if (!currentEntry || isSaved) return;
-    const id = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    setVocabulary((items) => [{ ...currentEntry, id, mastered: false, createdAt: new Date().toISOString() }, ...items]);
+    setVocabulary((items) => addToVocabulary(items, currentEntry));
   };
 
   const speak = (text) => {
@@ -207,7 +224,14 @@ export default function App() {
 
   const exportVocabulary = () => {
     const quote = (value) => `"${String(value || "").replaceAll('"', '""')}"`;
-    const rows = [["word", "meaning", "part_of_speech", "sentence", "sentence_translation", "mastered"], ...vocabulary.map((item) => [item.word, item.meaning, item.partOfSpeech, item.sentence, item.sentenceTranslation, item.mastered ? "yes" : "no"])];
+    const rows = [["lemma", "word_family", "word", "meaning", "part_of_speech", "sentence", "sentence_translation", "mastered"]];
+    vocabulary.forEach((item) => {
+      if (item.contexts.length) {
+        item.contexts.forEach((context) => rows.push([item.lemma, item.familyLemma, context.word, context.meaning, context.partOfSpeech, context.sentence, context.sentenceTranslation, item.mastered ? "yes" : "no"]));
+      } else {
+        item.forms.forEach((form) => rows.push([item.lemma, item.familyLemma, form.word, form.meaning, form.partOfSpeech, "", "", item.mastered ? "yes" : "no"]));
+      }
+    });
     const csv = `\uFEFF${rows.map((row) => row.map(quote).join(",")).join("\n")}`;
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const anchor = document.createElement("a");
@@ -303,7 +327,7 @@ export default function App() {
                 <div className="word-title-row"><div><h2>{currentEntry.word}</h2><p>{currentEntry.pronunciation || currentEntry.partOfSpeech || "语境词义"}</p></div><IconButton label="朗读单词" onClick={() => speak(currentEntry.word)}><Volume2 size={19} /></IconButton></div>
                 <div className="meaning-block"><span>当前语境释义</span><strong>{currentEntry.meaning}</strong><p>{currentEntry.note}</p></div>
                 <div className="context-block"><span>来自原文</span><p>{currentEntry.sentence}</p><small>{currentEntry.sentenceTranslation}</small></div>
-                <button className={`save-word-button ${isSaved ? "saved" : ""}`} disabled={isSaved} onClick={addVocabulary}>{isSaved ? <BookmarkCheck size={18} /> : <Plus size={18} />}{isSaved ? "已加入生词本" : "加入生词本"}</button>
+                <button className={`save-word-button ${isSaved ? "saved" : ""}`} disabled={isSaved} onClick={addVocabulary}>{isSaved ? <BookmarkCheck size={18} /> : <Plus size={18} />}{isSaved ? `已收录 ${savedEntry?.contexts.length || 1} 个语境` : savedEntry ? "补充这个语境" : "加入生词本"}</button>
               </div>
             ) : (
               <div className="word-placeholder"><span>Aa</span><h3>点击句中的单词</h3><p>这里会显示这个词在当前句子里的具体含义，而不是罗列所有字典释义。</p></div>
@@ -316,18 +340,31 @@ export default function App() {
             <div><span className="step-label">VOCABULARY</span><h1>生词本</h1><p>每个词都保留它出现时的原句和语境释义。</p></div>
             <button className="secondary-button" onClick={exportVocabulary} disabled={!vocabulary.length}><Download size={17} />导出 CSV</button>
           </div>
-          <div className="vocabulary-tools"><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索单词、释义或原句" /><span>{filteredVocabulary.length} 个词</span></div>
+          <div className="vocabulary-filter" aria-label="生词掌握状态">
+            {[["all", "全部", vocabularyCounts.all], ["learning", "未掌握", vocabularyCounts.learning], ["mastered", "已掌握", vocabularyCounts.mastered]].map(([value, label, count]) => (
+              <button key={value} className={vocabularyFilter === value ? "active" : ""} onClick={() => setVocabularyFilter(value)}>{label}<span>{count}</span></button>
+            ))}
+          </div>
+          <div className="vocabulary-tools"><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索单词、词族、释义或原句" /><span>{filteredVocabulary.length} 个词</span></div>
           {filteredVocabulary.length ? (
             <div className="vocabulary-list">
-              {filteredVocabulary.map((item) => (
+              {filteredVocabulary.map((item) => {
+                const relatedWords = vocabulary.filter((candidate) => candidate.id !== item.id && candidate.familyLemma && candidate.familyLemma === item.familyLemma);
+                return (
                 <article className={`vocab-card ${item.mastered ? "mastered" : ""}`} key={item.id}>
-                  <div className="vocab-word"><div><h2>{item.word}</h2><span>{item.partOfSpeech} {item.pronunciation}</span></div><strong>{item.meaning}</strong></div>
-                  <div className="vocab-context"><p>{item.sentence}</p><small>{item.sentenceTranslation}</small></div>
+                  <div className="vocab-word"><div><h2>{item.displayWord}</h2><span>原形 {item.lemma} · {item.contexts.length} 个语境</span></div><strong>{item.forms[0]?.meaning}</strong></div>
+                  <div className="vocab-forms">
+                    {item.forms.map((form, index) => <div className="vocab-form" key={`${form.word}-${form.partOfSpeech}-${index}`}><span>{form.partOfSpeech || "词性待补充"}</span><b>{form.word}</b><p>{form.meaning}</p>{form.pronunciation && <small>{form.pronunciation}</small>}</div>)}
+                  </div>
+                  {relatedWords.length > 0 && <div className="word-family"><span>同源词族</span>{relatedWords.map((related) => <button key={related.id} onClick={() => { setSearch(related.lemma); setVocabularyFilter("all"); }}>{related.displayWord}<small>{related.forms[0]?.partOfSpeech}</small></button>)}</div>}
+                  <div className="vocab-contexts">
+                    {item.contexts.map((context, index) => <div className="vocab-context" key={`${context.sentence}-${index}`}><span>语境 {index + 1} · {context.partOfSpeech}</span><p>{context.sentence}</p><small>{context.sentenceTranslation}</small></div>)}
+                  </div>
                   <div className="vocab-actions"><button onClick={() => setVocabulary((items) => items.map((entry) => entry.id === item.id ? { ...entry, mastered: !entry.mastered } : entry))}>{item.mastered ? <Bookmark size={16} /> : <Check size={16} />}{item.mastered ? "继续学习" : "标记已掌握"}</button><IconButton label="删除生词" onClick={() => setVocabulary((items) => items.filter((entry) => entry.id !== item.id))}><Trash2 size={17} /></IconButton></div>
                 </article>
-              ))}
+              )})}
             </div>
-          ) : <div className="empty-state vocabulary-empty"><Bookmark size={28} /><h3>{search ? "没有匹配结果" : "还没有生词"}</h3><p>{search ? "换个关键词试试。" : "在精读页点击单词，并把它连同原句一起收藏。"}</p></div>}
+          ) : <div className="empty-state vocabulary-empty"><Bookmark size={28} /><h3>{search || vocabularyFilter !== "all" ? "没有匹配结果" : "还没有生词"}</h3><p>{search || vocabularyFilter !== "all" ? "换个关键词或筛选状态试试。" : "在精读页点击单词，并把它连同原句一起收藏。"}</p></div>}
         </main>
       )}
 

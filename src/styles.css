@@ -269,6 +269,10 @@ h1, h2, h3, p { margin-top: 0; }
 .vocabulary-header { align-items: end; }
 .vocabulary-header h1 { font-size: 38px; }
 .secondary-button { padding: 0 16px; border: 1px solid var(--line-strong); background: var(--paper); color: var(--green); }
+.vocabulary-filter { display: inline-flex; gap: 3px; margin-top: 28px; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: #ecece6; }
+.vocabulary-filter button { height: 32px; display: inline-flex; align-items: center; gap: 7px; padding: 0 11px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; }
+.vocabulary-filter button.active { background: var(--paper); color: var(--green); box-shadow: 0 1px 4px rgba(32, 36, 31, .08); font-weight: 700; }
+.vocabulary-filter span { min-width: 16px; color: inherit; font-size: 10px; text-align: center; }
 .vocabulary-tools { height: 48px; display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 8px; margin: 30px 0 18px; padding: 0 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--muted); }
 .vocabulary-tools input { min-width: 0; border: 0; outline: 0; background: transparent; }
 .vocabulary-tools span { font-size: 11px; }
@@ -279,7 +283,21 @@ h1, h2, h3, p { margin-top: 0; }
 .vocab-word h2 { display: inline; margin: 0 10px 0 0; font-family: Georgia, serif; font-size: 27px; font-weight: 500; letter-spacing: 0; }
 .vocab-word span { color: var(--muted); font-size: 10px; }
 .vocab-word strong { color: var(--green); font-family: Georgia, "Songti SC", serif; font-size: 17px; }
+.vocab-forms { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.vocab-form { min-width: min(100%, 185px); flex: 1 1 185px; padding: 11px 12px; border: 1px solid #d8e4dc; border-radius: 5px; background: #f6faf7; }
+.vocab-form > span, .vocab-context > span, .word-family > span { display: block; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .07em; }
+.vocab-form b { display: inline-block; margin-top: 5px; color: var(--ink); font-family: Georgia, serif; font-size: 15px; font-weight: 600; }
+.vocab-form p { display: inline; margin: 0 0 0 7px; color: var(--green); font-size: 12px; line-height: 1.5; }
+.vocab-form small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+.word-family { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 15px; }
+.word-family > span { margin-right: 3px; }
+.word-family button { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 0 8px; border: 1px solid #ccd9e7; border-radius: 5px; background: var(--blue-soft); color: var(--blue); cursor: pointer; font-family: Georgia, serif; font-size: 12px; }
+.word-family button:hover { border-color: var(--blue); }
+.word-family small { font-family: inherit; color: #597390; font-size: 9px; }
+.vocab-contexts { display: grid; gap: 8px; margin-top: 17px; }
 .vocab-context { margin-top: 17px; padding: 14px 16px; border-left: 3px solid var(--yellow); background: var(--paper-soft); }
+.vocab-contexts .vocab-context { margin-top: 0; }
+.vocab-context > span { margin-bottom: 7px; }
 .vocab-context p { margin: 0 0 5px; font-family: Georgia, serif; font-size: 14px; line-height: 1.6; }
 .vocab-context small { color: var(--muted); line-height: 1.6; }
 .vocab-actions { align-items: center; margin-top: 15px; }
@@ -345,6 +363,9 @@ h1, h2, h3, p { margin-top: 0; }
   .vocabulary-view { padding: 32px 18px 60px; }
   .vocabulary-header { align-items: flex-start; }
   .vocabulary-header h1 { font-size: 31px; }
+  .vocabulary-filter { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
+  .vocabulary-filter button { justify-content: center; padding: 0 5px; }
+  .vocabulary-tools { margin-top: 16px; }
   .vocab-word { display: block; }
   .vocab-word strong { display: block; margin-top: 10px; }
 }

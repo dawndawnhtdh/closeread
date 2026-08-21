@@ -46,7 +46,7 @@ cp "$PROJECT_DIR/desktop/preload.cjs" "$APP_PATH/Contents/Resources/app/desktop/
 cat > "$APP_PATH/Contents/Resources/app/package.json" <<'JSON'
 {
   "name": "closeread-english",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "main": "desktop/main.js"
 }
@@ -57,8 +57,8 @@ JSON
 /usr/libexec/PlistBuddy -c "Set :CFBundleName CloseRead" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName CloseRead" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile CloseRead.icns" "$PLIST"
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.1" "$PLIST"
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion 2" "$PLIST"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.1.0" "$PLIST"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion 3" "$PLIST"
 
 codesign --force --deep --sign - "$APP_PATH" >/dev/null
 rm -rf "$ICON_TMP"
